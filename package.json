@@ -1,0 +1,19 @@
+{
+  "name": "tsp-with-pso",
+  "version": "1.0.0",
+  "description": "This project intends to solve the Travel salesman problem with particle swam optimization approach",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Diezaztek/tsp-with-pso.git"
+  },
+  "author": "Diezaztek",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Diezaztek/tsp-with-pso/issues"
+  },
+  "homepage": "https://github.com/Diezaztek/tsp-with-pso#readme"
+}
