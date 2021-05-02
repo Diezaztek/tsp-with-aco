@@ -9,7 +9,7 @@ var Canvas = (function () {
             'height': height,
         };
 
-        $(canvasHolder).css({'maxWidth': this._canvasSize.width, 'maxHeight': this._canvasSize.height});
+        $(canvasHolder).css('maxWidth', this._canvasSize.width);
         $(canvasHolder).append('<canvas id="' + canvasId + '" width="' + this._canvasSize.width + '" height="' + this._canvasSize.height + '" style="width:100%;"></canvas>');
 
         this._canvasEle = $('#' + canvasId)[0];
@@ -25,8 +25,8 @@ var Canvas = (function () {
         
         this._clickHook = null;
         this._mouseMoveHook = null;
-    };
-
+    }
+    
     Canvas.prototype.getMouseX = function() { return this._mousePos.x };
     Canvas.prototype.getMouseY = function() { return this._mousePos.y };
     Canvas.prototype.getWidth = function() { return this._canvasSize.width };
@@ -40,16 +40,6 @@ var Canvas = (function () {
             this._clickHook();
         }
     };
-
-    Canvas.prototype.setImage = function(image) { 
-        var background = new Image();
-        background.src = image;
-        background.onload = function(){
-            const canvas = $('#aoc-graph')[0];
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(background,0,0);   
-        }
-    }
 
     Canvas.prototype._move = function(mouseEvt) {
         this._updateMouseXY(mouseEvt);
@@ -99,9 +89,9 @@ var Canvas = (function () {
     }
     
     Canvas.prototype.drawCircle = function(x, y, params) {
-        var size = 10;
+        var size = 6;
         var color = '#000';
-        var alpha = 2;
+        var alpha = 1;
 
         if (params != undefined) {
             if (params.size != undefined) {
@@ -112,10 +102,6 @@ var Canvas = (function () {
             }
             if (params.alpha != undefined) {
                 alpha = params.alpha;
-            }
-            if (params.id != undefined) {
-                this._canvas.font = '30px Nunito';
-                this._canvas.fillText(params.id, x + 15, y - 10)
             }
         }
         
@@ -167,8 +153,6 @@ var Canvas = (function () {
     return Canvas;
 })();
 
-var id = 1;
-
 var ACArtist = (function() {
     function ACArtist(ac, canvas) {
         this._ac = ac;
@@ -214,6 +198,7 @@ var ACArtist = (function() {
     
     ACArtist.prototype._draw = function() {
         this._canvas.clear();
+        this._drawBg();
         this._drawEdges();
         this._drawNodes();
         this._drawCurrentBest();
@@ -244,7 +229,7 @@ var ACArtist = (function() {
         var nodes = this._ac.getGraph().getCities();
         
         for (var nodeIndex in nodes) {
-            this._canvas.drawCircle(nodes[nodeIndex].getX(), nodes[nodeIndex].getY(), { 'alpha': 0.8, 'id': nodes[nodeIndex].getId() });
+            this._canvas.drawCircle(nodes[nodeIndex].getX(), nodes[nodeIndex].getY(), { 'alpha': 0.8 });
         }
     };
     
@@ -272,6 +257,15 @@ var ACArtist = (function() {
         }
     };
     
+    ACArtist.prototype._drawBg = function() {
+        var grd = this._canvas.getContext().createLinearGradient(0, 0, 0, this._canvas.getHeight());
+        grd.addColorStop(0, "#eee");
+        grd.addColorStop(0.4, "#fcfcfc");
+        grd.addColorStop(1, "#eee");
+        
+        this._canvas.drawRectangle(0, 0, this._canvas.getWidth(), this._canvas.getHeight(), { 'fill': grd });
+    };
+    
     ACArtist.prototype.stop = function() {
         clearInterval(this._animationIterator);
         this._ac.reset();
@@ -282,7 +276,6 @@ var ACArtist = (function() {
         this.stop();
         this._ac.getGraph().clear();
         this._draw();
-        id = 1;
     };
 
     ACArtist.prototype.runAC = function(iterationHook) {
@@ -359,7 +352,6 @@ var Graph = (function () {
     function Graph() {
         this._cities = [];
         this._edges = {};
-        this._id = id;
     }
 
     Graph.prototype.getEdges = function() { return this._edges; };
@@ -378,8 +370,7 @@ var Graph = (function () {
     };
 
     Graph.prototype.addCity = function(x, y) {
-        this._cities.push(new City(x,y, this._id));
-        id ++;
+        this._cities.push(new City(x,y));
     };
 
     Graph.prototype._addEdge = function(cityA, cityB) {
@@ -423,15 +414,13 @@ var City = (function () {
     function City(x, y) {
         this._x = x;
         this._y = y;
-        this._id = id;
     }
 
     City.prototype.getX = function() { return this._x; };
     City.prototype.getY = function() { return this._y; };
-    City.prototype.getId = function() { return this._id };
 
     City.prototype.toString = function() {
-        return this._id + ': ' + this._x + ',' + this._y;
+        return this._x + ',' + this._y;
     };
 
     City.prototype.isEqual = function(city) {
@@ -793,10 +782,6 @@ var Tour = (function () {
         return false;
     };
 
-    Tour.prototype.getNodes = function() {
-        return this._tour;
-    };
-
     Tour.prototype.addCity = function(city) {
         this._distance = null;
         this._tour.push(city);
@@ -830,13 +815,23 @@ var Tour = (function () {
 })();
 
 $(document).ready(function(){
-    var antCanvas = new Canvas('#aco-canvas', 1080, 720);
+    var antCanvas = new Canvas('#aco-canvas', 700, 440);
     var ac = new AntColony();
     var acArtist = new ACArtist(ac, antCanvas);
 
     $('#aco-params select').change(function() {
         acArtist.stop();
         setParams();
+    });
+
+    $('#aco-mode').change(function() {
+        $('#elitist-weight-input').hide();
+        $('.maxmin-params').hide();
+        if ($(this).val() == 'elitist') {
+            $('#elitist-weight-input').show();
+        } else if ($(this).val() == 'maxmin') {
+            $('.maxmin-params').show();
+        }
     });
 
     function setParams() {
@@ -860,7 +855,7 @@ $(document).ready(function(){
     $('#start-search-btn').click(function() {
         setParams();
         if (!ac.ready()) {
-            alert('Please add at least two destination nodes');
+            loadPopup({msg:'Please add at least two destination nodes'});
         }
 
         $('.aco-info').show();
@@ -869,25 +864,7 @@ $(document).ready(function(){
         acArtist.runAC(function() {
             $('#iteration-info').html(ac.currentIteration() + '/' + ac.maxIterations());
             $('#best-distance').html((ac.getGlobalBest().getTour().distance()).toFixed(2));
-
-            let tourIds = ''
-            ac.getGlobalBest().getTour()._tour.forEach( city => {
-                tourIds += city._id + '-'
-            })
-
-            $('#best-tour').html(tourIds.substring(0, tourIds.length - 1));
         });
     });
     $('#clear-graph').click(acArtist.clearGraph);
-
-    $('#width,#height').change(function() {
-        $('#aco-canvas').remove();
-        $('#aco-workspace').append('<div style="border:1px solid #ccc; width:' + $('#width').val() + '; height: ' + $('#height').val() + ';" id="aco-canvas"></div>')
-        antCanvas = new Canvas('#aco-canvas', $('#width').val(), $('#height').val());
-        acArtist = new ACArtist(ac, antCanvas);
-    });
-
-    $('#background-file').change(function() {
-        $('#aco-canvas').css({'background':`linear-gradient(rgba(255,255,255,.8), rgba(255,255,255,.8)), url("${$(this).val()}")`, 'backgroundRepeat': 'no-repeat', 'backgroundPosition': 'center'})
-    });
 });

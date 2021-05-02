@@ -64,7 +64,7 @@
     font-size: 1rem;
     font-weight: 400;
     line-height: 1.5;
-    color: #858796;
+    color: #565762;
     text-align: left;
     background-color: #fff;
   }
@@ -11242,4 +11242,18 @@
   body.sidebar-toggled footer.sticky-footer {
     width: 100%;
   }
+
+  #accordionSidebar {
+    float:left;
+    overflow-y: auto;
+    max-height: 100px;
+  }
+
+
   
+  #aco-canvas {
+    background: linear-gradient(rgba(255,255,255,.5), rgba(255,255,255,.5)), url("");
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
